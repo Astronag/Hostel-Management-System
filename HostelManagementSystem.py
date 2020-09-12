@@ -8,6 +8,106 @@ print('Connected\n')
 # Create a cursor object.
 cursor = conn.cursor()
 
+# Function for login
+def login(uname, pword):
+
+	# Function to set username and password fields to null.
+	def setnull():
+		messagebox.showwarning('WARNING', 'Invalid Username/Password !!!')
+		user.set('')
+		pwod.set('')
+
+	# Function for student logout.
+	def logout():
+		top1.destroy()
+		user.set('')
+		pwod.set('')
+
+	if uname != '' and pword != '':
+		# Check the credentials with the data in the database.
+		cursor.execute('select username from login where username=?', (uname, ))
+		name = cursor.fetchall()
+		# print(name)
+		cursor.execute('select password from "login" where "username"=?', (uname,))
+		pwd = cursor.fetchall()
+		# print(pwd)
+		if len(name) != 0 and len(pwd) != 0:
+			entry_name = name[0]
+			entry_pwd = pwd[0]
+			if entry_name[0] == uname and entry_pwd[0] == pword:
+				# Login if the student credentials are matched.
+				top1 = Toplevel()
+				top1.configure(bg='azure')
+				top1.resizable(False, False)
+				top1.geometry('1850x990')
+
+				# Label frame to display the heading of student login
+				stud_frame = LabelFrame(top1, bg='azure')
+				stud_frame.place(width=1850, height=100)
+
+				# Label frame to display the refresh and logout buttons.
+				mid_frame = LabelFrame(top1, bg='white')
+				mid_frame.place(rely=0.105, width=1850, height=90)
+
+				# Label frame to display the student details.
+				info_frame = LabelFrame(top1, bg='azure')
+				info_frame.place(rely=0.2, width=1850, height=800)
+
+				# Student title.
+				title = Label(top1, text='STUDENT PROFILE', font=('Times New Roman', 55, 'bold'), fg='DodgerBlue4', bg='azure')
+				title.pack()
+
+				# Student icon.
+				stud_icon = Image.open('/home/astronag/student.png')
+				stud_icon = stud_icon.resize((50, 50), Image.ANTIALIAS)
+				stud_image = ImageTk.PhotoImage(stud_icon)
+				stud_img_label = Label(top1, image=stud_image, bg='white')
+				img_label.image = stud_image
+				stud_img_label.place(relx=0.008, rely=0.15, anchor=W)
+
+				# Logout button for student.
+				logout_icon_stud = Image.open('/home/astronag/logout.png')
+				logout_icon_stud = logout_icon_stud.resize((45, 45), Image.ANTIALIAS)
+				logout_img_stud = ImageTk.PhotoImage(logout_icon_stud)
+				logout_btn_stud = Button(top1, image=logout_img_stud, bg='lavender', command=logout)
+				logout_btn_stud.place(relx=0.92, rely=0.15, anchor=W)
+				logout_btn_stud.image = logout_img_stud
+				logout_stud_label = Label(top1, text='Logout', font=('Helvetica', 17), bg='white')
+				logout_stud_label.place(relx=0.95, rely=0.15, anchor=W)
+
+				# Edit button for student.
+				edit_img = Image.open("/home/astronag/edit.png")
+				edit_img = edit_img.resize((30, 30), Image.ANTIALIAS)
+				edit_img_1 = ImageTk.PhotoImage(edit_img)
+				edit_btn = Button(top1, image=edit_img_1, height=30, width=30, bg='lavender', command=edit)
+				edit_btn.place(relx=0.04, rely=0.23, anchor=W)
+				edit_btn.image = edit_img_1
+				edit_label = Label(top1, text='Edit', font=('Helvetica', 14), bg='azure')
+				edit_label.place(relx=0.06, rely=0.23, anchor=W)
+
+				# Refresh button for student.
+				refresh_stud_icon = Image.open('/home/astronag/refresh.ico')
+				refresh_stud_img = refresh_stud_icon.resize((30, 30), Image.ANTIALIAS)
+				refresh_stud_img = ImageTk.PhotoImage(refresh_stud_img)
+				refresh_stud_btn = Button(top1, bg='lavender', image=refresh_stud_img, height=30, width=30, command=refresh_stud)
+				refresh_stud_btn.place(relx=0.013, rely=0.23, anchor=W)
+				refresh_stud_btn.image = refresh_stud_img
+
+				# Display the details of the student.
+				display_details()
+			else:
+				# Set the username and password fields to null if the credentials are not matched.
+				setnull()
+	else:
+		setnull()
+
+
+def cancel():
+	top.destroy()
+	root.destroy()
+	sys.exit()
+
+
 def register_new():
 	stud_usn = StringVar()
 	option = StringVar()
