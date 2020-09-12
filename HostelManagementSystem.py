@@ -23,6 +23,159 @@ def login(uname, pword):
 		user.set('')
 		pwod.set('')
 
+	# Function to display student details.
+	def display_details():
+
+		# Retrieve details of the student from the database.
+		cursor.execute('select name from student where usn=?', (uname,))
+		display_name = cursor.fetchall()
+		display_name = display_name[0]
+
+		# Label to display name of the student.
+		welcome = Label(top1, text=display_name[0].title(), font=('Helvetica', 27), bg='white', fg='gray1')
+		welcome.place(relx=0.04, rely=0.15, anchor=W)
+
+		# USN label.
+		usn_label = Label(top1, text='USN: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+		usn_label.place(relx=0.04, rely=0.29, anchor=W)
+		# Label to display USN of the student.
+		usn = Label(top1, text=uname, font=('Times New Roman', 20), bg='azure')
+		usn.place(relx=0.11, rely=0.29, anchor=W)
+
+		# Student course label.
+		stud_course_label = Label(top1, text='Course: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+		stud_course_label.place(relx=0.04, rely=0.36, anchor=W)
+		# Retrieve course of the student from the database.
+		course = cursor.execute('select course from student where usn=?', (uname,))
+		stud_course_record = course.fetchall()
+		# Label to display course of the student.
+		stud_course = Label(top1, text=stud_course_record[0], font=('Times New Roman', 20), bg='azure')
+		stud_course.place(relx=0.11, rely=0.36, anchor=W)
+
+		# Student branch label.
+		stud_branch_label = Label(top1, text='Branch: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+		stud_branch_label.place(relx=0.04, rely=0.43, anchor=W)
+		# Retrieve branch of the student from the database.
+		branch = cursor.execute('select branch from student where usn=?', (uname,))
+		stud_branch_record = branch.fetchall()
+		# Label to display course of the student.
+		stud_branch = Label(top1, text=stud_branch_record[0],font=('Times New Roman', 20), bg='azure')
+		stud_branch.place(relx=0.11, rely=0.43, anchor=W)
+
+		# Year label.
+		stud_year_label = Label(top1, text='Year: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+		stud_year_label.place(relx=0.04, rely=0.50, anchor=W)
+		# Retrieve year of study of the student from the database.
+		year = cursor.execute('select year from student where usn=?', (uname,))
+		stud_year_record = year.fetchall()
+		# Label to display year of study of the student.
+		stud_year = Label(top1, text=stud_year_record[0], font=('Times New Roman', 20), bg='azure')
+		stud_year.place(relx=0.11, rely=0.50, anchor=W)
+
+		# Gmail label
+		stud_gmail_label = Label(top1, text='Gmail: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+		stud_gmail_label.place(relx=0.04, rely=0.57, anchor=W)
+		# Retrieve Gmail of the student from the database.
+		gmail = cursor.execute('select gmail from student where usn=?', (uname,))
+		stud_gmail_record = gmail.fetchall()
+		# Label to display Gmail of the student.
+		stud_gmail = Label(top1, text=stud_gmail_record[0], font=('Times New Roman', 20), bg='azure')
+		stud_gmail.place(relx=0.11, rely=0.57, anchor=W)
+
+		# Phone label.
+		stud_phone_label = Label(top1, text='Phone: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+		stud_phone_label.place(relx=0.04, rely=0.64, anchor=W)
+		# Retrieve the phone no. of the student from the database.
+		phone = cursor.execute('select phone from student where usn=?', (uname,))
+		stud_phone_record = phone.fetchall()
+		# Label to display the phone no. of the student.
+		stud_phone = Label(top1, text=stud_phone_record[0], font=('Times New Roman', 20), bg='azure')
+		stud_phone.place(relx=0.11, rely=0.64, anchor=W)
+
+		# This try block is for the situation when the student has just registered and has not been added by the warden.
+		try:
+			# Student block number label.
+			stud_block_label = Label(top1, text='Block:', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+			stud_block_label.place(relx=0.04, rely=0.71, anchor=W)
+			# Retrieve the block number of the student from the database.
+			stud_block_record = cursor.execute('select blocknum from block where studusn=?', (uname,))
+			stud_block_record = stud_block_record.fetchall()
+			# Label to display the block number of the student.
+			stud_block = Label(top1, text=stud_block_record[0], font=('Times New Roman', 20), bg='azure')
+			stud_block.place(relx=0.11, rely=0.71, anchor=W)
+
+			# Room number label.
+			stud_room_label = Label(top1, text='Room No.: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+			stud_room_label.place(relx=0.04, rely=0.78, anchor=W)
+			# Retrieve the room number of the student from the database.
+			stud_room_record = cursor.execute('select roomnum from room where studusn=?', (uname,))
+			stud_room_record = stud_room_record.fetchall()
+			# Label to display the room number of the student.
+			stud_room = Label(top1, text=stud_room_record[0], font=('Times New Roman', 20), bg='azure')
+			stud_room.place(relx=0.125, rely=0.78, anchor=W)
+
+			# Warden phone no. label.
+			warden_ph = Label(top1, text='Contact: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+			warden_ph.place(relx=0.7, rely=0.29, anchor=W)
+			# Retrieve the warden details from the datbase.
+			one = cursor.execute('select w.name, w.phone, w.gmail, w.post, w.type, w.blocknum from warden w where'
+			                     ' w.blocknum=(select b.blocknum from block b where b.studusn=?) and'
+			                     ' w.type=(select bl.type from block bl where bl.studusn=?)',
+			                     (uname, uname))
+			one = one.fetchall()
+
+			# Display details of the warden.
+			y = 0.335
+			num = 1
+			j = 0
+			for i in one:
+				p = one[j]
+				w = str(num) + '. ' + p[3].title() + ', ' + p[4].title() + "' hostel " + str(p[5]) + '\n' + i[0].title() + ' \n ' + str(i[1]) + '\n' + i[2]
+				w_name = Label(top1, text=w, font=('Times New Roman', 20), bg='azure')
+				w_name.place(relx=0.78, rely=y, anchor=W)
+				y += 0.15
+				j += 1
+				num += 1
+
+			# Roommates label.
+			stud_roommates = Label(top1, text='Roomies: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+			stud_roommates.place(relx=0.35, rely=0.29, anchor=W)
+			rmates = stud_room_record[0]
+			# Retrieve roommates details from the database.
+			stud_rmates = cursor.execute('select studusn, studname from room where roomnum=?', (rmates[0],))
+			stud_rmates = stud_rmates.fetchall()
+			# Display details of roommates.
+			y = 0.29
+			for roommates in stud_rmates:
+				roomies = Label(top1, text=roommates[1] + ' (' + roommates[0] + ')', font=('Times New Roman', 20), bg='azure')
+				roomies.place(relx=0.43, rely=y, anchor=W)
+				y += 0.05
+
+			# Fee paid label.
+			stud_fee_paid_label = Label(top1, text='Fee paid: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+			stud_fee_paid_label.place(relx=0.35, rely=0.57, anchor=W)
+			# Retrieve the fee paid details of the student from the database.
+			fee_paid_record = cursor.execute('select feepaid from fee where studusn=?', (uname,))
+			fee_paid_record = fee_paid_record.fetchall()
+			fee_paid_record = fee_paid_record[0]
+			# Label to display fee paid by the student.
+			fee_paid = Label(top1, text='₹ ' + str(fee_paid_record[0]), font=('Times', 20), bg='azure')
+			fee_paid.place(relx=0.43, rely=0.57, anchor=W)
+
+			# Fee balance label.
+			stud_fee_balance_label = Label(top1, text='Balance fee: ', font=('Courier', 20, 'bold'), bg='azure', fg='brown4')
+			stud_fee_balance_label.place(relx=0.35, rely=0.78, anchor=W)
+			# Retrieve balance fee details from the database.
+			fee_balance_record = cursor.execute('select feebalance from fee where studusn=?', (uname,))
+			fee_balance_record = fee_balance_record.fetchall()
+			fee_balance_record = fee_balance_record[0]
+			# Label to display balance fee of the student.
+			fee_balance = Label(top1, text='₹ ' + str(fee_balance_record[0]), font=('Times', 20), bg='azure')
+			fee_balance.place(relx=0.46, rely=0.78, anchor=W)
+
+		except:
+			pass
+
 	if uname != '' and pword != '':
 		# Check the credentials with the data in the database.
 		cursor.execute('select username from login where username=?', (uname, ))
