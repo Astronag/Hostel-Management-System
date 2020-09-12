@@ -98,6 +98,39 @@ def login(uname, pword):
 			else:
 				# Set the username and password fields to null if the credentials are not matched.
 				setnull()
+		else:
+			# Display the details of warden.
+			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
+			wrdn_name = wrdn_name.fetchall()
+			wrdn_pwd = cursor.execute('select password from warden where id=?', (uname, ))
+			wrdn_pwd = wrdn_pwd.fetchall()
+			if len(wrdn_name) != 0 and len(wrdn_pwd) != 0:
+				wrdn_id, wrdn_pass = wrdn_name[0], wrdn_pwd[0]
+				if wrdn_pass[0] == pword:
+					top2 = Toplevel()
+					top2.configure(bg='azure')
+					top2.resizable(False, False)
+					top2.geometry('1850x990')
+
+					title_frame = LabelFrame(top2, bg='azure')
+					title_frame.place(width=1850, height=100)
+
+					mid_frame_wrdn = LabelFrame(top2, bg='white')
+					mid_frame_wrdn.place(rely=0.105, width=1850, height=100)
+
+					title = Label(top2, text='WARDEN PROFILE', font=('Times New Roman', 55, 'bold'), fg='DodgerBlue4', bg='azure')
+					title.pack()
+					wrdn_icon = Image.open('/home/astronag/warden.png')
+					wrdn_icon = wrdn_icon.resize((50, 50), Image.ANTIALIAS)
+					wrdn_img = ImageTk.PhotoImage(wrdn_icon)
+					wrdn_img_btn = Button(top2, image=wrdn_img, bg='white', command=show_wrdn_info)
+					wrdn_img_btn.image = wrdn_img
+					wrdn_img_btn.place(relx=0.008, rely=0.15, anchor=W)
+					display_warden_info()
+				else:
+					setnull()
+			else:
+				setnull()
 	else:
 		setnull()
 
