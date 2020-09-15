@@ -288,6 +288,269 @@ def login(uname, pword):
 		setnull()
 
 
+	def edit():
+
+		# Toplevel window to edit details of the student.
+		edit_top = Toplevel()
+		edit_top.geometry('1500x900')
+		edit_top.resizable(False, False)
+		edit_top.config(bg='mint cream')
+
+		# Label frame for the top portion of the window.
+		edit_title_frame = LabelFrame(edit_top, bg='mint cream')
+		edit_title_frame.place(relx=0, rely=0, anchor=W, width=1500, height=170)
+
+		# Edit information title.
+		edit_title = Label(edit_top, text='EDIT INFORMATION', bg='mint cream', font=('Times New Roman', 45, 'bold'), fg='DodgerBlue4')
+		edit_title.pack()
+
+		# Label frame for the middle of the window.
+		frame = LabelFrame(edit_top, bg='white')
+		frame.place(relx=0, rely=0.43, anchor=W, width=1500, height=600)
+
+		# Label frame for the rest of the window.
+		down_frame = LabelFrame(edit_top, bg='mint cream')
+		down_frame.place(relx=0, rely=0.883, anchor=W, width=1500, height=210)
+
+		# Function to cancel the edit of the student.
+		def cancel_edit():
+			edit_top.destroy()
+
+		# Function that checks for all the valid inputs and updates the database with the new values given.
+		def submit_edit():
+
+			# TRIGGER TO UPDATE STUDENT INFO
+			# cursor.execute('create trigger update_stud_room_info after update on student begin update room set studname=New.name where studusn=New.usn; end;')
+			# cursor.execute('create trigger update_stud_block_info after update on student begin update block set studname=New.name where studusn=New.usn; end;')
+			# cursor.execute('create trigger update_stud_fee_info after update on student begin update fee set studname=New.name where studusn=New.usn; end;')
+
+			# Check whether none of the fields are left empty.
+			if stud_name.get() != '' and gmail.get() != '' and gender.get() != '' and phone.get() != '' and parent_name.get() != '' \
+					and parent_gmail.get() != '' and parent_phone.get() != '' and address_entry.get("1.0", 'end-1c') != '' and dob.get() != '':
+
+				# Check whether both passwords match.
+				if login_password.get() == confirm_password.get():
+
+					# Check whether the Phone No. is valid i.e., 10 digits.
+					if len(parent_phone.get()) == 10 and len(phone.get()) == 10 and parent_phone.get() != phone.get():
+
+						# If the password is not changed then update the modified fields.
+						if login_password.get() == '':
+							cursor.execute('update student set name=?, gmail=?, course=?, branch=?, phone=?,year=?, '
+							               'gender=?, parentname=?, parentphone=?,parentgmail=?, dob=?, address=? where usn=?',
+							               (stud_name.get(), gmail.get(), option.get(), option1.get(),
+							                phone.get(), option_year.get(), gender.get(), parent_name.get(),
+							                parent_phone.get(), parent_gmail.get(), dob.get(), address_entry.get("1.0",
+							                                                                                     'end-1c'), uname))
+							conn.commit()
+							messagebox.showinfo('INFORMATION', 'Successfully updated')
+							edit_top.destroy()
+							# display_details()
+
+						else:
+							# If the password is changed then update the modified fields.
+							cursor.execute('update student set name=?, gmail=?, course=?, branch=?, phone=?,year=?, '
+							               'gender=?, parentname=?, parentphone=?,parentgmail=?, dob=?, address=? where usn=?',
+							               (stud_name.get(), gmail.get(), option.get(), option1.get(),
+							                phone.get(), option_year.get(), gender.get(), parent_name.get(),
+							                parent_phone.get(), parent_gmail.get(), dob.get(), address_entry.get("1.0",
+							                                                                                     'end-1c'),
+							                uname))
+							cursor.execute('update login set password=? where username=?', (login_password.get(), uname))
+							conn.commit()
+							messagebox.showinfo('INFORMATION', 'Successfully updated')
+							edit_top.destroy()
+							# display_details()
+
+					else:
+						# Issue a warning if the Phone No. is invalid.
+						messagebox.showwarning('WARNING', 'Invalid Phone No. !!!')
+
+				else:
+					# Issue a warning if the passwords does not match.
+					messagebox.showwarning('WARNING', 'Passwords should be the same !!!')
+
+			else:
+				# Issue a warning if any of the fields are left empty.
+				messagebox.showwarning('WARNING', 'Some of the required field(s) are left empty !!!')
+
+		# Text variables for the input during edit.
+		stud_name = StringVar()
+		option = StringVar()
+		option1 = StringVar()
+		option_year = StringVar()
+		gmail = StringVar()
+		gender = StringVar()
+		dob = StringVar()
+		phone = StringVar()
+		parent_name = StringVar()
+		parent_phone = StringVar()
+		parent_gmail = StringVar()
+		login_password = StringVar()
+		confirm_password = StringVar()
+		inst = StringVar()
+
+		instruct = Label(edit_top, text='', font=('Courier', 13), bg='azure', fg='OrangeRed3', textvariable=inst)
+		instruct.place(relx=0.37, rely=0.83, anchor=W)
+
+		# Retrieve the student USN from the database.
+		values = cursor.execute('select * from student where usn=?', (uname,))
+		values = values.fetchall()
+		values = values[0]
+		# print(values)
+
+		# Name label in edit window.
+		name_label = Label(edit_top, text='Name', font=('Courier', 16), bg='white')
+		name_label.place(relx=0.1, rely=0.15, anchor=W)
+
+		# Entry box for name edit. It is set with the previous value given.
+		name_entry = Entry(edit_top, textvariable=stud_name, font=('Times', 14))
+		stud_name.set(values[0])
+		name_entry.place(relx=0.18, rely=0.15, anchor=W, width=250)
+
+		# USN label in edit window.
+		usn_label = Label(edit_top, text='USN', font=('Courier', 16), bg='white')
+		usn_label.place(relx=0.1, rely=0.22, anchor=W)
+
+		# Label displaying the USN of the student which cannot be edited.
+		usn_entry = Label(edit_top, text=values[1], bg='white', font=('Times', 18, 'bold'))
+		usn_entry.place(relx=0.18, rely=0.22, anchor=W)
+
+		# Course label in edit window.
+		course_label = Label(edit_top, text='Course', font=('Courier', 16), bg='white')
+		course_label.place(relx=0.1, rely=0.29, anchor=W)
+		OPTIONS = ["UG"]
+
+		# Dropdown list for course in edit window.
+		course_drop_down = OptionMenu(edit_top, option, *OPTIONS)
+		option.set(values[3])
+		course_drop_down.place(relx=0.18, rely=0.29, anchor=W)
+
+		# Branch label in edit window.
+		branch_label = Label(edit_top, text='Branch', font=('Courier', 16), bg='white')
+		branch_label.place(relx=0.1, rely=0.36, anchor=W)
+		BRANCH_OPTIOINS = ['CSE', 'ECE', 'EEE', 'ME', 'CV', 'AE', 'ISE']
+
+		# Dropdown list for branch in edit window.
+		branch_drop_down = OptionMenu(edit_top, option1, *BRANCH_OPTIOINS)
+		option1.set(values[4])
+		branch_drop_down.place(relx=0.18, rely=0.36, anchor=W)
+
+		# Year label in edit windwow.
+		year_label = Label(edit_top, text='Year', font=('Courier', 16), bg='white')
+		year_label.place(relx=0.1, rely=0.43, anchor=W)
+		YEAR_OPTIONS = ['1st', '2nd', '3rd', '4th']
+
+		# Dropdown list for year  in edit window.
+		year_drop_down = OptionMenu(edit_top, option_year, *YEAR_OPTIONS)
+		option_year.set(values[6])
+		year_drop_down.place(relx=0.18, rely=0.43, anchor=W)
+
+		# Gmail label in edit window.
+		gmail_label = Label(edit_top, text='Gmail', font=('Courier', 16), bg='white')
+		gmail_label.place(relx=0.1, rely=0.5, anchor=W)
+
+		# Gmail entry box with the previous value given.
+		gmail_entry = Entry(edit_top, textvariable=gmail, font=('Times', 14))
+		gmail.set(values[2])
+		gmail_entry.place(relx=0.18, rely=0.5, anchor=W, width=250)
+
+		# Gnder label in edit window.
+		gender_label = Label(edit_top, text='Gender', font=('Courier', 16), bg='white')
+		gender_label.place(relx=0.1, rely=0.57, anchor=W)
+
+		# Male radio button in edit window.
+		male_rbtn = Radiobutton(edit_top, text='Male', font=('Courier', 14), variable=gender, value='male', bg='white')
+		male_rbtn.place(relx=0.18, rely=0.57, anchor=W)
+
+		# Female radio button in edit window.
+		female_rbtn = Radiobutton(edit_top, text='Female', font=('Courier', 14), variable=gender, value='female', bg='white')
+		female_rbtn.place(relx=0.239, rely=0.57, anchor=W)
+
+		# Others radio button in edit window.
+		other_rbtn = Radiobutton(edit_top, text='Other', font=('Courier', 14), variable=gender, value='other', bg='white')
+		other_rbtn.place(relx=0.313, rely=0.57, anchor=W)
+		gender.set(values[7])
+
+		# DOB label in edit window.
+		dob_label = Label(edit_top, text='DOB', font=('Courier', 16), bg='white')
+		dob_label.place(relx=0.1, rely=0.64, anchor=W)
+
+		# DOB entry in edit window
+		dob_entry = Entry(edit_top, textvariable=dob, font=('Times', 14))
+		dob_entry.place(relx=0.18, rely=0.64, anchor=W, width=250)
+		dob.set(values[11])
+
+		# Phone label in edit window.
+		phone_label = Label(edit_top, text='Phone', font=('Courier', 16), bg='white')
+		phone_label.place(relx=0.66, rely=0.15, anchor=W)
+
+		# Phone entry box in entry window.
+		phone_entry = Entry(edit_top, textvariable=phone, font=('Times', 14))
+		phone_entry.place(relx=0.81, rely=0.15, anchor=W, width=250)
+		phone.set(values[5])
+
+		# Parent name label in edit window.
+		parent_name_label = Label(edit_top, text='Parent name', font=('Courier', 16), bg='white')
+		parent_name_label.place(relx=0.66, rely=0.22, anchor=W)
+
+		# Parent entry box in edit window.
+		parent_name_entry = Entry(edit_top, textvariable=parent_name, font=('Times', 14))
+		parent_name_entry.place(relx=0.81, rely=0.22, anchor=W, width=250)
+		parent_name.set(values[8])
+
+		# Parent phone label in edit window.
+		parent_phone_label = Label(edit_top, text="Parent's phone", font=('Courier', 16), bg='white')
+		parent_phone_label.place(relx=0.66, rely=0.29, anchor=W)
+
+		# Parent phone entry box in edit window.
+		parent_phone_entry = Entry(edit_top, textvariable=parent_phone, font=('Times', 14))
+		parent_phone_entry.place(relx=0.81, rely=0.29, anchor=W, width=250)
+		parent_phone.set(values[9])
+
+		# Parent Gmail label in edit window.
+		parent_gmail_label = Label(edit_top, text="Parent's Gmail", font=('Courier', 16), bg='white')
+		parent_gmail_label.place(relx=0.66, rely=0.36, anchor=W)
+
+		# Parent Gmail entry box in edit window.
+		parent_gmail_entry = Entry(edit_top, textvariable=parent_gmail, font=('Times', 14))
+		parent_gmail_entry.place(relx=0.81, rely=0.36, anchor=W, width=250)
+		parent_gmail.set(values[10])
+
+		# Address label in edit window.
+		address_label = Label(edit_top, text='Address', font=('Courier', 16), bg='white')
+		address_label.place(relx=0.66, rely=0.43, anchor=W)
+
+		# Address entry box in edit window.
+		address_entry = Text(edit_top, width=27, height=6, font=('Times', 14))
+		address_entry.place(relx=0.81, rely=0.465, anchor=W)
+		address_entry.insert("1.0", values[12])
+
+		# Password label in edit window.
+		password_label = Label(edit_top, text='New Password', font=('Courier', 16), bg='white')
+		password_label.place(relx=0.66, rely=0.57, anchor=W)
+
+		# Password entry box in edit window.
+		password_entry = Entry(edit_top, show='*', textvariable=login_password, font=('Times', 14))
+		password_entry.place(relx=0.81, rely=0.57, anchor=W, width=250)
+
+		# Confirm password label in edit window.
+		confirm_password_label = Label(edit_top, text='Confirm password', font=('Courier', 16), bg='white')
+		confirm_password_label.place(relx=0.66, rely=0.64, anchor=W)
+
+		# Confirm password entry box in edit window.
+		confirm_password_entry = Entry(edit_top, show='*', textvariable=confirm_password, font=('Times', 14))
+		confirm_password_entry.place(relx=0.81, rely=0.64, anchor=W, width=250)
+
+		# Submit button in edit window.
+		submit_edit_btn = Button(edit_top, text='SUBMIT', bg='lavender', command=submit_edit)
+		submit_edit_btn.place(relx=0.42, rely=0.9, anchor=W)
+
+		# Cancel button in edit window.
+		cancel_edit_btn = Button(edit_top, text='CANCEL', bg='lavender', command=cancel_edit)
+		cancel_edit_btn.place(relx=0.53, rely=0.9, anchor=W)
+		
+
 def cancel():
 	top.destroy()
 	root.destroy()
