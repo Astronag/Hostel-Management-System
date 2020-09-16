@@ -338,6 +338,54 @@ def login(uname, pword):
 				refresh_wdn_btn.image = refresh_wdn_img
 
 				def display_fee_details():
+
+					def change_fee():
+
+						new_fee = StringVar()
+
+						def cancel_ch_fee():
+							fee_top.destroy()
+
+						def submit_ch_fee():
+							if new_fee.get() != '':
+								cursor.execute('update fee set totalfee=?', (new_fee.get(),))
+								cursor.execute('update fee set feebalance=(totalfee-feepaid)')
+								conn.commit()
+								messagebox.showinfo('INFORMATION', 'Fee updated.')
+								fee_top.destroy()
+								display_fee_details()
+							else:
+								messagebox.showwarning('WARNING', 'Enter the new fee.')
+
+						fee_top = Toplevel()
+						fee_top.geometry('500x350+730+400')
+						fee_top.resizable(False, False)
+						fee_top.configure(bg='linen')
+
+						change_fee_title = Label(fee_top, text='CHANGE FEE', font=('Times', 25, 'bold'), bg='linen', fg='DodgerBlue4')
+						change_fee_title.pack()
+
+						cur_fee_label = Label(fee_top, text='Current Fee', bg='linen', fg='brown4', font=('Courier', 17, 'bold'))
+						cur_fee_label.place(relx=0.22, rely=0.3, anchor=W)
+
+						cur_fee_record = cursor.execute('select distinct totalfee from fee')
+						cur_fee_record = cur_fee_record.fetchall()
+						cur_fee = Label(fee_top, text='₹ ' + str(cur_fee_record[0][0]), font=('Times', 17), bg='linen')
+						cur_fee.place(relx=0.6, rely=0.3, anchor=W)
+
+						new_fee_label = Label(fee_top, text='New Fee', bg='linen', fg='brown4', font=('Courier', 17, 'bold'))
+						new_fee_label.place(relx=0.22, rely=0.55, anchor=W)
+
+						new_fee_entry = Entry(fee_top, textvariable=new_fee, width=17)
+						new_fee_entry.place(relx=0.6, rely=0.55, anchor=W)
+
+						submit_ch_fee_btn = Button(fee_top, text='SUBMIT', font=('Courier', 11), bg='light steel blue', command=submit_ch_fee)
+						submit_ch_fee_btn.place(relx=0.3, rely=0.85, anchor=W)
+
+						cancel_ch_fee_btn = Button(fee_top, text='CANCEL', font=('Courier', 11), bg='light steel blue', command=cancel_ch_fee)
+						cancel_ch_fee_btn.place(relx=0.55, rely=0.85, anchor=W)
+
+
 					fee_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
 					fee_frame.place(rely=0.605, anchor=W)
 					cols = ('USN', 'Name', 'Branch', 'Year', 'Room No.', 'Fee paid', 'Fee balance')
