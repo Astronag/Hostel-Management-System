@@ -568,6 +568,30 @@ def login(uname, pword):
 					change_room_btn = Button(room_frame, text='CHANGE ROOM', bg='salmon4', fg='white', font=('Courier', 15), command=change_room)
 					change_room_btn.place(relx=0.45, rely=0.93, anchor=W)
 
+				def display_warden_details():
+					wrdn_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
+					wrdn_frame.place(rely=0.605, anchor=W)
+					cols = ('ID', 'Name', 'Gmail', 'Phone', 'Block No.', 'Block type')
+					listbox = ttk.Treeview(wrdn_frame, columns=cols, show='headings', style='mystyle.Treeview')
+					for col in cols:
+						listbox.heading(col, text=col)
+					listbox.place(rely=0.5, anchor=W, width=1850, height=780)
+					wrdnlist = cursor.execute('select id, name, gmail, phone, blocknum, type from warden')
+					wrdnlist = wrdnlist.fetchall()
+					for i in wrdnlist:
+						listbox.insert('', 'end', values=(i[0], i[1].title(), i[2], str(i[3]), str(i[4]), i[5].title() + "'"))
+
+					scroll = Scrollbar(listbox, orient='vertical', command=listbox.yview, width=15)
+					scroll.pack(side=RIGHT, fill='y')
+
+					listbox.configure(yscrollcommand=scroll.set)
+
+					add_warden_btn = Button(wrdn_frame, text='ADD WARDEN', font=('Courier', 15), bg='salmon4', fg='white', command=add_warden)
+					add_warden_btn.place(relx=0.4, rely=0.93, anchor=W)
+
+					delete_warden_btn = Button(wrdn_frame, text='DELETE WARDEN', font=('Courier', 15), bg='salmon4', fg='white', command=delete_warden)
+					delete_warden_btn.place(relx=0.49, rely=0.93, anchor=W)
+
 			# Display the details of warden.
 			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
 			wrdn_name = wrdn_name.fetchall()
