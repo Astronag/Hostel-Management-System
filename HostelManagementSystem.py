@@ -23,6 +23,14 @@ def login(uname, pword):
 		user.set('')
 		pwod.set('')
 
+	# Function for refreshing the details of the student after the data has been modified.
+	def refresh_stud():
+		display_details()
+
+	# Function for refreshing the details of the warden after the data has been modified.
+	def refresh_wdn():
+		display_warden_info()
+
 	# Function to display student details.
 	def display_details():
 
@@ -252,6 +260,83 @@ def login(uname, pword):
 				# Set the username and password fields to null if the credentials are not matched.
 				setnull()
 		else:
+			# Function to display the details of warden.
+			def display_warden_info():
+				# Style configuration for treeview.
+				style = ttk.Style()
+				# Gap between the rows.
+				style.configure('mystyle.Treeview', rowheight=40)
+				# Heading configuration.
+				style.configure("mystyle.Treeview.Heading", font=('Times', 18, 'bold'), background='#800080', foreground='#FFFFFF')
+				# Rows of data configuration.
+				style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Times', 16), background='#F0F8FF')
+				# To remove the border.
+				style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])
+
+				# StringVar for some entry boxes.
+				usn = StringVar()
+				stud_block = StringVar()
+				block_type = StringVar()
+				room_num = StringVar()
+				fee_paid = StringVar()
+
+				warden_record = cursor.execute('select name from warden where id=?', (uname,))
+				warden_record = warden_record.fetchall()
+				warden_name = warden_record[0]
+
+				empty_label = Label(top2, bg='white', fg='white', width=60, height=5)
+				empty_label.place(relx=0.04, rely=0.15, anchor=W)
+
+				wrdn_name_label = Label(top2, text=warden_name[0].title(), font=('Helvetica', 27), bg='white', fg='gray1')
+				wrdn_name_label.place(relx=0.04, rely=0.15, anchor=W)
+
+				labelframe = LabelFrame(top2, bg='azure')
+				labelframe.place(relx=0.299, rely=0.15, anchor=W, width=734, height=46)
+
+				home_label_frame = LabelFrame(top2, bg='azure')
+				home_label_frame.place(rely=0.21, width=1850, height=780)
+
+				add_stud_btn = Button(home_label_frame, text='ADD STUDENT', font=('Helvetica', 20), bg='purple', fg='white', command=add_student)
+				add_stud_btn.place(relx=0.35, rely=0.5, anchor=W)
+
+				delete_stud_btn = Button(home_label_frame, text='DELETE STUDENT', font=('Helvetica', 20), bg='purple', fg='white', command=delete_student)
+				delete_stud_btn.place(relx=0.5, rely=0.5, anchor=W)
+
+				fee_btn = Button(labelframe, text='Fee details', font=('Helvetica', 20),  fg='white', bg='SpringGreen3', command=display_fee_details)
+				fee_btn.place(rely=0.49, anchor=W)
+
+				block_btn = Button(labelframe, text='Block details', font=('Helvetica', 20),  fg='white', bg='SpringGreen3', command=display_block_details)
+				block_btn.place(relx=0.219, rely=0.49, anchor=W)
+
+				room_btn = Button(labelframe, text='Room details', font=('Helvetica', 20),  fg='white', bg='SpringGreen3', command=display_room_details)
+				room_btn.place(relx=0.465, rely=0.49, anchor=W)
+
+				wrdn_btn = Button(labelframe, text='Warden details', font=('Helvetica', 20),  fg='white', bg='SpringGreen3', command=display_warden_details)
+				wrdn_btn.place(relx=0.718, rely=0.49, anchor=W)
+
+				home_icon = Image.open('/home/astronag/home.png')
+				home_icon = home_icon.resize((45, 46), Image.ANTIALIAS)
+				home_img = ImageTk.PhotoImage(home_icon)
+				home_btn = Button(top2, image=home_img, bg='white', font=('Courier', 17), command=home_wrdn)
+				home_btn.place(relx=0.88, rely=0.15, anchor=W)
+				home_btn.image = home_img
+
+				logout_icon = Image.open('/home/astronag/logout.png')
+				logout_icon = logout_icon.resize((45, 45), Image.ANTIALIAS)
+				logout_img = ImageTk.PhotoImage(logout_icon)
+				logout_btn = Button(top2, image=logout_img, bg='lavender', font=('Courier', 17), command=logout_wrdn)
+				logout_btn.place(relx=0.92, rely=0.15, anchor=W)
+				logout_btn.image = logout_img
+				logout_label = Label(top2, text="Logout", font=('Helvetica', 17), bg='white')
+				logout_label.place(relx=0.95, rely=0.15, anchor=W)
+
+				refresh_wdn_icon = Image.open('/home/astronag/refresh.ico')
+				refresh_wdn_img = refresh_wdn_icon.resize((45, 46), Image.ANTIALIAS)
+				refresh_wdn_img = ImageTk.PhotoImage(refresh_wdn_img)
+				refresh_wdn_btn = Button(mid_frame_wrdn, bg='white', image=refresh_wdn_img, command=refresh_wdn)
+				refresh_wdn_btn.place(relx=0.84, rely=0.45, anchor=W)
+				refresh_wdn_btn.image = refresh_wdn_img
+
 			# Display the details of warden.
 			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
 			wrdn_name = wrdn_name.fetchall()
@@ -549,7 +634,7 @@ def login(uname, pword):
 		# Cancel button in edit window.
 		cancel_edit_btn = Button(edit_top, text='CANCEL', bg='lavender', command=cancel_edit)
 		cancel_edit_btn.place(relx=0.53, rely=0.9, anchor=W)
-		
+
 
 def cancel():
 	top.destroy()
