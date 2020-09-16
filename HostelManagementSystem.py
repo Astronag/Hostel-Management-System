@@ -337,6 +337,29 @@ def login(uname, pword):
 				refresh_wdn_btn.place(relx=0.84, rely=0.45, anchor=W)
 				refresh_wdn_btn.image = refresh_wdn_img
 
+				def display_fee_details():
+					fee_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
+					fee_frame.place(rely=0.605, anchor=W)
+					cols = ('USN', 'Name', 'Branch', 'Year', 'Room No.', 'Fee paid', 'Fee balance')
+					listbox = ttk.Treeview(fee_frame, columns=cols, show='headings', style='mystyle.Treeview')
+					for col in cols:
+						listbox.heading(col, text=col)
+					listbox.place(rely=0.5, anchor=W, width=1850, height=780)
+					fee_list = cursor.execute('select s.usn, s.name, s.branch, s.year, r.roomnum, f.feepaid, f.feebalance '
+					                          'from student s, fee f, room r where f.studusn=s.usn and '
+					                          'r.studusn=s.usn order by feebalance desc')
+					fee_list = fee_list.fetchall()
+					for i in fee_list:
+						listbox.insert('', 'end', values=(i[0], i[1], i[2], i[3], i[4], '₹ ' + str(i[5]), '₹ ' + str(i[6])))
+
+					scroll = Scrollbar(listbox, orient='vertical', command=listbox.yview, width=15)
+					scroll.pack(side=RIGHT, fill='y')
+
+					listbox.configure(yscrollcommand=scroll.set)
+
+					change_fee_btn = Button(fee_frame, text='CHANGE FEE', bg='salmon4', fg='white', font=('Courier', 15), command=change_fee)
+					change_fee_btn.place(relx=0.45, rely=0.93, anchor=W)
+
 			# Display the details of warden.
 			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
 			wrdn_name = wrdn_name.fetchall()
