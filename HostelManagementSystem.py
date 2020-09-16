@@ -568,6 +568,180 @@ def login(uname, pword):
 					change_room_btn = Button(room_frame, text='CHANGE ROOM', bg='salmon4', fg='white', font=('Courier', 15), command=change_room)
 					change_room_btn.place(relx=0.45, rely=0.93, anchor=W)
 
+				def delete_warden():
+					def delete_warden_btn():
+						if del_wrdn_id.get() != '':
+							is_present = cursor.execute('select * from warden where id=?', (del_wrdn_id.get(),))
+							is_present = is_present.fetchall()
+							if len(is_present) != 0:
+								cursor.execute('delete from warden where id=?', (del_wrdn_id.get(),))
+								a = cursor.execute(
+									'select id, name from warden where blocknum=(select w.blocknum from warden w where w.id=?)'
+									' and type=(select ww.type from warden ww where ww.id=?)', (del_wrdn_id.get(), del_wrdn_id.get()))
+								a = a.fetchall()
+
+								if len(a) != 0:
+									a = [item for item in a if item[0] != del_wrdn_id.get()]
+									a = [item for item in a[0]]
+									cursor.execute('update block set wardenid=?, wardenname=? where wardenid=?',
+									               (a[0], a[1], del_wrdn_id.get()))
+
+								conn.commit()
+								messagebox.showinfo('INFORMATION', 'Successfully deleted.')
+								del_wrdn.destroy()
+								display_warden_details()
+							else:
+								messagebox.showwarning('WARNING', 'Invalid ID')
+						else:
+							messagebox.showwarning('WARNING', 'Enter ID')
+
+					del_wrdn = Toplevel()
+					del_wrdn.configure(bg='linen')
+					del_wrdn.geometry('700x250+640+400')
+					del_wrdn.resizable(False, False)
+
+					del_wrdn_id = StringVar()
+
+					delete_title = Label(del_wrdn, text='DELETE WARDEN', font=('Times', 25, 'bold'), bg='linen', fg='DodgerBlue4')
+					delete_title.pack()
+
+					del_wrdn_id_label = Label(del_wrdn, text='ID', font=('Courier', 17, 'bold'), fg='brown4', bg='linen')
+					del_wrdn_id_label.place(relx=0.3, rely=0.5, anchor=W)
+
+					del_wrdn_entry = Entry(del_wrdn, font=('Times', 14), textvariable=del_wrdn_id)
+					del_wrdn_entry.place(relx=0.4, rely=0.5, anchor=W)
+
+					next_btn = Button(del_wrdn, text='DELETE', font=('Courier', 17), fg='white', bg='purple', command=delete_warden_btn)
+					next_btn.place(relx=0.8, rely=0.8, anchor=W)
+
+				def add_warden():
+					def cancel_wrdn_add():
+						new_wrdn.destroy()
+
+					def submit_wrdn_add():
+						if new_wrdn_name.get() != '' and new_wrdn_gmail.get() != '' and new_wrdn_ph.get() != '' and \
+								new_wrdn_post.get() != '' and new_wrdn_block_type.get() != '' and new_wrdn_pwd.get() != '' \
+								and new_wrdn_confirm_pwd.get() != '':
+							if len(new_wrdn_ph.get()) == 10:
+								if new_wrdn_pwd.get() == new_wrdn_confirm_pwd.get():
+									is_present = cursor.execute('select * from warden where gmail=?',
+									                            (new_wrdn_gmail.get(),))
+									is_present = is_present.fetchall()
+									btype = new_wrdn_block_type.get()[:4].lower()
+									# is_already = cursor.execute('select * from warden where blocknum=? and type=?',
+									#                             (new_wrdn_block.get(), btype))
+									# is_already = is_already.fetchall()
+									if len(is_present) == 0:
+										wdn_id = cursor.execute('select id from warden')
+										wdn_id = wdn_id.fetchall()
+										id_list = []
+										for i in wdn_id:
+											id_list.append(i[0])
+										id_list = [int(j[4:]) for j in id_list]
+										cursor.execute('insert into warden values(?, ?, ?, ?, ?, ?, ?, ?)',
+										               (new_wrdn_name.get(), 'wrdn' + str(max(id_list) + 1),
+										                new_wrdn_ph.get(), new_wrdn_gmail.get(),
+										                new_wrdn_pwd.get(), new_wrdn_post.get(),
+										                new_wrdn_block.get(), btype))
+										conn.commit()
+										messagebox.showinfo('INFORMATION',
+										                    'Successfully added.\n\nYour ID is ' + 'wrdn' + str(
+											                    max(id_list) + 1))
+										new_wrdn.destroy()
+									else:
+										messagebox.showwarning('WARNING', 'Warden already exists.')
+								else:
+									messagebox.showwarning('WARNING', 'Passwords should be the same.')
+							else:
+								messagebox.showwarning('WARNING', 'Invalid Phone No.')
+						else:
+							messagebox.showwarning('WARNING', 'Some of the required fields are empty.')
+
+					new_wrdn_name = StringVar()
+					new_wrdn_gmail = StringVar()
+					new_wrdn_ph = StringVar()
+					new_wrdn_post = StringVar()
+					new_wrdn_block = StringVar()
+					new_wrdn_block_type = StringVar()
+					new_wrdn_pwd = StringVar()
+					new_wrdn_confirm_pwd = StringVar()
+
+					new_wrdn = Toplevel()
+					new_wrdn.geometry('900x450+550+300')
+					new_wrdn.resizable(False, False)
+					new_wrdn.configure(bg='linen')
+
+					new_title = Label(new_wrdn, text='WARDEN DETAILS', fg='DodgerBlue4', bg='linen',
+					                  font=('Times', 30, 'bold'))
+					new_title.pack()
+
+					new_wrdn_name_label = Label(new_wrdn, text='Name', font=('Courier', 17, 'bold'), fg='brown4',
+					                            bg='linen')
+					new_wrdn_name_label.place(relx=0.04, rely=0.25, anchor=W)
+
+					new_wrdn_name_entry = Entry(new_wrdn, textvariable=new_wrdn_name, font=('Times', 14))
+					new_wrdn_name_entry.place(relx=0.14, rely=0.25, anchor=W)
+
+					new_wrdn_gmail_label = Label(new_wrdn, text='Gmail', font=('Courier', 17, 'bold'), fg='brown4',
+					                             bg='linen')
+					new_wrdn_gmail_label.place(relx=0.04, rely=0.4, anchor=W)
+
+					new_wrdn_gmail_entry = Entry(new_wrdn, textvariable=new_wrdn_gmail, font=('Times', 14))
+					new_wrdn_gmail_entry.place(relx=0.14, rely=0.4, anchor=W)
+
+					new_wrdn_ph_label = Label(new_wrdn, text='Phone', font=('Courier', 17, 'bold'), fg='brown4',
+					                          bg='linen')
+					new_wrdn_ph_label.place(relx=0.04, rely=0.55, anchor=W)
+
+					new_wrdn_ph_entry = Entry(new_wrdn, textvariable=new_wrdn_ph, font=('Times', 14))
+					new_wrdn_ph_entry.place(relx=0.14, rely=0.55, anchor=W)
+
+					new_wrdn_post_label = Label(new_wrdn, text='Post', font=('Courier', 17, 'bold'), fg='brown4',
+					                            bg='linen')
+					new_wrdn_post_label.place(relx=0.04, rely=0.7, anchor=W)
+
+					new_wrdn_post_entry = Entry(new_wrdn, textvariable=new_wrdn_post, font=('Times', 14))
+					new_wrdn_post_entry.place(relx=0.14, rely=0.7, anchor=W)
+
+					new_wrdn_block_label = Label(new_wrdn, text='Block No.', font=('Courier', 17, 'bold'), fg='brown4',
+					                             bg='linen')
+					new_wrdn_block_label.place(relx=0.47, rely=0.25, anchor=W)
+
+					new_wrdn_block_entry = Entry(new_wrdn, textvariable=new_wrdn_block, font=('Times', 14))
+					new_wrdn_block_entry.place(relx=0.75, rely=0.25, anchor=W)
+
+					new_wrdn_btype_label = Label(new_wrdn, text='Block type', font=('Courier', 17, 'bold'), fg='brown4',
+					                             bg='linen')
+					new_wrdn_btype_label.place(relx=0.47, rely=0.4, anchor=W)
+
+					new_wrdn_block_type_options = ["Boys' hostel", "Girls' hostel"]
+					new_wrdn_btype_drop_down = OptionMenu(new_wrdn, new_wrdn_block_type, *new_wrdn_block_type_options)
+					new_wrdn_block_type.set("Boys' hostel")
+					new_wrdn_btype_drop_down.place(relx=0.75, rely=0.4, anchor=W)
+
+					new_wrdn_pwd_label = Label(new_wrdn, text='Password', font=('Courier', 17, 'bold'), fg='brown4',
+					                           bg='linen')
+					new_wrdn_pwd_label.place(relx=0.47, rely=0.55, anchor=W)
+
+					new_wrdn_pwd_entry = Entry(new_wrdn, textvariable=new_wrdn_pwd, font=('Times', 14), show='*')
+					new_wrdn_pwd_entry.place(relx=0.75, rely=0.55, anchor=W)
+
+					new_wrdn_cnfrm_pwd_label = Label(new_wrdn, text='Confirm password', font=('Courier', 17, 'bold'),
+					                                 fg='brown4', bg='linen')
+					new_wrdn_cnfrm_pwd_label.place(relx=0.47, rely=0.7, anchor=W)
+
+					new_wrdn_cnfrm_pwd_entry = Entry(new_wrdn, textvariable=new_wrdn_confirm_pwd, font=('Times', 14),
+					                                 show='*')
+					new_wrdn_cnfrm_pwd_entry.place(relx=0.75, rely=0.7, anchor=W)
+
+					submit_new_btn = Button(new_wrdn, text='SUBMIT', font=('Courier', 14), bg='light steel blue',
+					                        command=submit_wrdn_add)
+					submit_new_btn.place(relx=0.35, rely=0.9, anchor=W)
+
+					cancel_new_btn = Button(new_wrdn, text='CANCEL', font=('Courier', 14), bg='light steel blue',
+					                        command=cancel_wrdn_add)
+					cancel_new_btn.place(relx=0.53, rely=0.9, anchor=W)
+
 				def display_warden_details():
 					wrdn_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
 					wrdn_frame.place(rely=0.605, anchor=W)
