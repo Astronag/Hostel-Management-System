@@ -440,11 +440,111 @@ def login(uname, pword):
 					ch_new_block = StringVar()
 					ch_new_room = StringVar()
 
+					def change_room():
+						def ch_room_next():
+							def cancel_ch():
+								ch_room_info.destroy()
+
+							def submit_ch():
+								if ch_new_block.get() != '' and ch_new_room.get() != '':
+									cursor.execute('update room set roomnum=?, blocknum=? where studusn=?', (ch_new_room.get(), ch_new_block.get(), ch_usn.get()))
+									cursor.execute('update block set blocknum=? where studusn=?', (ch_new_block.get(), ch_usn.get()))
+									conn.commit()
+									messagebox.showinfo('INFORMATION', 'Successfully updated.')
+									ch_room_info.destroy()
+									display_room_details()
+								else:
+									messagebox.showwarning('WARNING', 'Some of the required fields are empty.')
+
+							if ch_usn.get() != '':
+								is_present = cursor.execute('select * from room where studusn=?', (ch_usn.get(),))
+								is_present = is_present.fetchall()
+								if len(is_present) != 0:
+									ch_room.destroy()
+									ch_room_info = Toplevel()
+									ch_room_info.geometry('600x500+690+297')
+									ch_room_info.configure(bg='linen')
+									ch_room_info.resizable(False, False)
+
+									ch_room_title = Label(ch_room_info, text='CHANGE ROOM', font=('Times', 25, 'bold'), bg='linen', fg='DodgerBlue4')
+									ch_room_title.pack()
+
+									ch_stud_name_label = Label(ch_room_info, text='Name', font=('Courier', 16, 'bold'), bg='linen', fg='brown4')
+									ch_stud_name_label.place(relx=0.2, rely=0.2, anchor=W)
+
+									ch_name_record = cursor.execute('select studname from room where studusn=?', (ch_usn.get(),))
+									ch_name_record = ch_name_record.fetchall()
+									ch_stud_name = Label(ch_room_info, text=ch_name_record[0][0].title(), font=('Times', 18), bg='linen')
+									ch_stud_name.place(relx=0.57, rely=0.2, anchor=W)
+
+									ch_stud_usn_label = Label(ch_room_info, text='USN', font=('Courier', 16, 'bold'), bg='linen', fg='brown4')
+									ch_stud_usn_label.place(relx=0.2, rely=0.3, anchor=W)
+
+									ch_usn_disp = Label(ch_room_info, text=ch_usn.get(), font=('Times', 18), bg='linen')
+									ch_usn_disp.place(relx=0.57, rely=0.3, anchor=W)
+
+									ch_cur_block = Label(ch_room_info, text='Current Block', font=('Courier', 16, 'bold'), bg='linen', fg='brown4')
+									ch_cur_block.place(relx=0.2, rely=0.4, anchor=W)
+
+									ch_cur_block_record = cursor.execute('select blocknum, blocktype, roomnum from room where studusn=?', (ch_usn.get(),))
+									ch_cur_block_record = ch_cur_block_record.fetchall()
+
+									ch_cur_block = Label(ch_room_info, text=ch_cur_block_record[0][1].title() + "' hostel " + ch_cur_block_record[0][0],
+									                     font=('Times', 18), bg='linen')
+									ch_cur_block.place(relx=0.57, rely=0.4, anchor=W)
+
+									ch_cur_room_label = Label(ch_room_info, text='Current Room No.', font=('Courier', 16, 'bold'), bg='linen', fg='brown4')
+									ch_cur_room_label.place(relx=0.2, rely=0.5, anchor=W)
+
+									ch_cur_room = Label(ch_room_info, text=ch_cur_block_record[0][2], font=('Times', 18), bg='linen')
+									ch_cur_room.place(relx=0.57 , rely=0.5, anchor=W)
+
+									ch_new_block_label = Label(ch_room_info, text='New Block', font=('Courier', 16, 'bold'), bg='linen', fg='brown4')
+									ch_new_block_label.place(relx=0.2, rely=0.6, anchor=W)
+
+									ch_new_block_entry = Entry(ch_room_info, font=('Times', 14), textvariable=ch_new_block)
+									ch_new_block_entry.place(relx=0.57, rely=0.6, anchor=W)
+
+									ch_new_room_label = Label(ch_room_info, text='New Room No.', font=('Courier', 16, 'bold'), bg='linen', fg='brown4')
+									ch_new_room_label.place(relx=0.2, rely=0.7, anchor=W)
+
+									ch_new_room_entry = Entry(ch_room_info, textvariable=ch_new_room, font=('Times', 14))
+									ch_new_room_entry.place(relx=0.57, rely=0.7, anchor=W)
+
+									submit_ch_btn = Button(ch_room_info, text='SUBMIT', font=('Courier', 13), bg='light steel blue', command=submit_ch)
+									submit_ch_btn.place(relx=0.35, rely=0.85, anchor=W)
+
+									cancel_ch_btn = Button(ch_room_info, text='CANCEL', font=('Courier', 13), bg='light steel blue', command=cancel_ch)
+									cancel_ch_btn.place(relx=0.53, rely=0.85, anchor=W)
+								else:
+									messagebox.showwarning('WARNING', 'Invalid USN.')
+							else:
+								messagebox.showwarning('WARNING', 'Enter USN.')
+
+						ch_room = Toplevel()
+						ch_room.geometry('700x250+640+400')
+						ch_room.resizable(False, False)
+						ch_room.configure(bg='linen')
+
+						ch_usn.set('')
+
+						ch_title = Label(ch_room, text='CHANGE ROOM', font=('Times', 25, 'bold'), bg='linen', fg='DodgerBlue4')
+						ch_title.pack()
+
+						ch_usn_label = Label(ch_room, text='USN', bg='linen', fg='brown4', font=('Courier', 17, 'bold'))
+						ch_usn_label.place(relx=0.3, rely=0.5, anchor=W)
+
+						ch_usn_entry = Entry(ch_room, font=('Times', 14), textvariable=ch_usn, width=20)
+						ch_usn_entry.place(relx=0.4, rely=0.5, anchor=W)
+
+						ch_next_btn = Button(ch_room, text='NEXT', font=('Courier', 17), bg='purple', fg='white', command=ch_room_next)
+						ch_next_btn.place(relx=0.8, rely=0.8, anchor=W)
+
 					room_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
 					room_frame.place(rely=0.605, anchor=W)
 					cols = ('Room No.', 'Room type', 'Block No.', 'Block type', 'Students')
 					listbox = ttk.Treeview(room_frame, columns=cols, show='headings', style='mystyle.Treeview')
-					
+
 					for col in cols:
 						listbox.heading(col, text=col)
 					listbox.place(rely=0.5, anchor=W, width=1850, height=780)
