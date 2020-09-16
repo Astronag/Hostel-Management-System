@@ -435,6 +435,39 @@ def login(uname, pword):
 
 					listbox.configure(yscrollcommand=scroll.set)
 
+				def display_room_details():
+					ch_usn = StringVar()
+					ch_new_block = StringVar()
+					ch_new_room = StringVar()
+
+					room_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
+					room_frame.place(rely=0.605, anchor=W)
+					cols = ('Room No.', 'Room type', 'Block No.', 'Block type', 'Students')
+					listbox = ttk.Treeview(room_frame, columns=cols, show='headings', style='mystyle.Treeview')
+					
+					for col in cols:
+						listbox.heading(col, text=col)
+					listbox.place(rely=0.5, anchor=W, width=1850, height=780)
+					roomlist = cursor.execute('select roomnum, roomtype, blocknum, blocktype from room group by roomnum order by blocknum')
+					roomlist = roomlist.fetchall()
+					
+					for i in roomlist:
+						roommates = cursor.execute('select studname from room where roomnum=?', (i[0],))
+						roommates = roommates.fetchall()
+						names = ''
+						for j in roommates:
+							names += j[0] + ', '
+						names = names[:len(names)-2]
+						listbox.insert('', 'end', values=(i[0], i[1], i[2], i[3].title(), names))
+
+					scroll = Scrollbar(listbox, orient='vertical', command=listbox.yview, width=15)
+					scroll.pack(side=RIGHT, fill='y')
+
+					listbox.configure(yscrollcommand=scroll.set)
+
+					change_room_btn = Button(room_frame, text='CHANGE ROOM', bg='salmon4', fg='white', font=('Courier', 15), command=change_room)
+					change_room_btn.place(relx=0.45, rely=0.93, anchor=W)
+
 			# Display the details of warden.
 			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
 			wrdn_name = wrdn_name.fetchall()
