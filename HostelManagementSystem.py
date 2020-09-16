@@ -408,6 +408,33 @@ def login(uname, pword):
 					change_fee_btn = Button(fee_frame, text='CHANGE FEE', bg='salmon4', fg='white', font=('Courier', 15), command=change_fee)
 					change_fee_btn.place(relx=0.45, rely=0.93, anchor=W)
 
+				def display_block_details():
+					block_frame = LabelFrame(top2, width=1850, height=780, bg='azure')
+					block_frame.place(rely=0.605, anchor=W)
+					cols = ('Block No.', 'Room No.', 'Room type', 'Vacancies', 'Block type', 'Warden')
+					listbox = ttk.Treeview(block_frame, columns=cols, show='headings', style='mystyle.Treeview')
+
+					for col in cols:
+						listbox.heading(col, text=col)
+
+					listbox.place(rely=0.5, anchor=W, width=1850, height=780)
+					display = cursor.execute(
+						'select distinct r.roomnum, r.roomtype, r.blocknum, r.blocktype, b.wardenname '
+						'from room r, block b, warden w where b.blocknum=r.blocknum and b.type=r.blocktype order by r.blocknum')
+					roomlist = display.fetchall()
+					roomlist.sort(key=lambda e: e[0])
+					
+					for i in roomlist:
+						vacancies = cursor.execute('select count(*) from room where roomnum=? and blocknum=?', (i[0], i[2]))
+						vacancies = vacancies.fetchall()
+						vacancies = vacancies[0]
+						listbox.insert('', 'end', values=(i[2], i[0], i[1], 4-vacancies[0], i[3].title(), i[4].title()))
+
+					scroll = Scrollbar(listbox, orient='vertical', command=listbox.yview, width=15)
+					scroll.pack(side=RIGHT, fill='y')
+
+					listbox.configure(yscrollcommand=scroll.set)
+
 			# Display the details of warden.
 			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
 			wrdn_name = wrdn_name.fetchall()
