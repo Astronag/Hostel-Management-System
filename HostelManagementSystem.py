@@ -766,40 +766,350 @@ def login(uname, pword):
 					delete_warden_btn = Button(wrdn_frame, text='DELETE WARDEN', font=('Courier', 15), bg='salmon4', fg='white', command=delete_warden)
 					delete_warden_btn.place(relx=0.49, rely=0.93, anchor=W)
 
-			# Display the details of warden.
-			wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
-			wrdn_name = wrdn_name.fetchall()
-			wrdn_pwd = cursor.execute('select password from warden where id=?', (uname, ))
-			wrdn_pwd = wrdn_pwd.fetchall()
-			if len(wrdn_name) != 0 and len(wrdn_pwd) != 0:
-				wrdn_id, wrdn_pass = wrdn_name[0], wrdn_pwd[0]
-				if wrdn_pass[0] == pword:
-					top2 = Toplevel()
-					top2.configure(bg='azure')
-					top2.resizable(False, False)
-					top2.geometry('1850x990')
+					# Function to delete a student.
+			def delete_student():
 
-					title_frame = LabelFrame(top2, bg='azure')
-					title_frame.place(width=1850, height=100)
+				# Function that works after delete is pressed in delete student option.
+				def delete_stud_details():
 
-					mid_frame_wrdn = LabelFrame(top2, bg='white')
-					mid_frame_wrdn.place(rely=0.105, width=1850, height=100)
+					# Function which checks for all valid details and deletes the student details.
+					def del_stud():
 
-					title = Label(top2, text='WARDEN PROFILE', font=('Times New Roman', 55, 'bold'), fg='DodgerBlue4', bg='azure')
-					title.pack()
-					wrdn_icon = Image.open('/home/astronag/warden.png')
-					wrdn_icon = wrdn_icon.resize((50, 50), Image.ANTIALIAS)
-					wrdn_img = ImageTk.PhotoImage(wrdn_icon)
-					wrdn_img_btn = Button(top2, image=wrdn_img, bg='white', command=show_wrdn_info)
-					wrdn_img_btn.image = wrdn_img
-					wrdn_img_btn.place(relx=0.008, rely=0.15, anchor=W)
-					display_warden_info()
+						# Check if the student to be deleted is not null.
+						if del_usn.get() != '':
+							check_stud = cursor.execute('select * from student, room, block, fee')
+							check_stud = check_stud.fetchall()
+
+							# Check if the student exists in the database.
+							if len(check_stud) != 0:
+								balance = cursor.execute('select feebalance from fee where studusn=?', (del_usn.get(),))
+								balance = balance.fetchall()
+
+								# Check if the student has no balance fee.
+								if balance[0][0] == 0.0:
+									del_msg_box = messagebox.askquestion('CONFIRM', 'Confirm delete ?')
+
+									# Check if the YES button is pressed, for delete operation.
+									if del_msg_box == 'yes':
+
+										# Delete the student from the database.
+										cursor.execute('delete from student where usn=?', (del_usn.get(),))
+										conn.commit()
+										delete.destroy()
+										delete_student()
+
+					# These are the triggers created for delete operation performed on student table.
+					#
+					# cursor.execute('create trigger delete_stud_block after delete on student begin delete from block where studusn=OLD.usn; end;')
+					# cursor.execute('create trigger delete_stud_room after delete on student begin delete from room where studusn=OLD.usn; end;')
+					# cursor.execute('create trigger delete_stud_fee after delete on student begin delete from fee where studusn=OLD.usn; end;')
+					# cursor.execute('create trigger delete_stud_login after delete on student begin delete from login where username=OLD.usn; end;')
+
+								else:
+									# Issue a warning if the student has to pay the fee yet, before deleting.
+									messagebox.showwarning('WARNING', 'Student has not completely paid the fee.')
+
+							else:
+								# Issue a warning if the student does not exist in the database.
+								messagebox.showwarning('WARNING', 'Incorrect USN.')
+						else:
+							# issue a warning if the USN is not entered.
+							messagebox.showwarning('WARNING', 'Enter USN.')
+
+					# Toplevel window for delete operation.
+					delete = Toplevel()
+					delete.geometry('700x250+640+400')
+					delete.resizable(False, False)
+					delete.configure(bg='linen')
+
+					# Text variable for USN input.
+					del_usn = StringVar()
+
+					# Set the USN field to null.
+					del_usn.set('')
+
+					# Delete student title.
+					delete_title = Label(delete, text='DELETE STUDENT', font=('Times', 25, 'bold'), bg='linen', fg='DodgerBlue4')
+					delete_title.pack()
+
+					# USN label.
+					usn_label = Label(delete, text='USN', bg='linen', fg='brown4', font=('Courier', 17, 'bold'))
+					usn_label.place(relx=0.3, rely=0.5, anchor=W)
+
+					# USN entry box.
+					usn_entry = Entry(delete, font=('Times', 14), textvariable=del_usn, width=20)
+					usn_entry.place(relx=0.4, rely=0.5, anchor=W)
+
+					# Delete button.
+					del_btn = Button(delete, text='DELETE', font=('Courier', 17), bg='purple', fg='white', command=del_stud)
+					del_btn.place(relx=0.415, rely=0.8, anchor=W)
+
+				# Style for treeview displayed.
+				style = ttk.Style()
+
+				# Distance between any 2 rows.
+				style.configure('mystyle.Treeview', rowheight=40)
+
+				# Style for headings.
+				style.configure("mystyle.Treeview.Heading", font=('Times', 18, 'bold'), background='#800080',
+				                foreground='#FFFFFF')
+
+				# Style for rows of data displayed.
+				style.configure("mystyle.Treeview", highlightthickness=0, bd=0, font=('Times', 16),
+				                background='#F0F8FF')
+
+				# Removing the border.
+				style.layout("mystyle.Treeview", [('mystyle.Treeview.treearea', {'sticky': 'nswe'})])
+
+				# Column headings to be displayed in the tree view.
+				cols = ('USN', 'Name', 'Course', 'Branch', 'Block No.', 'Block type', 'Room No.', 'Room type', 'Balance fee')
+				delete_list = ttk.Treeview(top2, columns=cols, show='headings', style='mystyle.Treeview')
+
+				# Assign column names to columns of the treeview.
+				for col in cols:
+					delete_list.heading(col, text=col)
+
+				delete_list.place(rely=0.539, anchor=W, width=1850, height=650)
+
+				# Retrieve the required data from database.
+				display = cursor.execute(
+					'select s.usn, s.name, s.course, s.branch, r.blocknum, r.blocktype, r.roomnum, r.roomtype, '
+					'f.feebalance from student s, room r, fee f where s.usn=r.studusn and s.usn=f.studusn order by r.blocknum')
+				delete_stud = display.fetchall()
+
+				# Sort the retrieved data on Room No.
+				delete_stud.sort(key=lambda e: e[6])
+
+				# Insert all the records into the treeview.
+				for i in delete_stud:
+					delete_list.insert('', 'end', values=(i[0], i[1].title(), i[2], i[3], i[4], i[5].title(), i[6], i[7], '₹ ' + str(i[8])))
+
+				# Setting up a scrollbar for the treeview.
+				scroll = Scrollbar(delete_list, orient='vertical', command=delete_list.yview, width=15)
+				scroll.pack(side=RIGHT, fill='y')
+
+				# Linking the scroll bar to the treeview.
+				delete_list.configure(yscrollcommand=scroll.set)
+
+				# Delete button.
+				delete_btn = Button(top2, text='DELETE', font=('Courier', 15), bg='salmon4', fg='white', command=delete_stud_details)
+				delete_btn.place(relx=0.455, rely=0.93, anchor=W)
+
+			# Function to add a new student.
+			def add_student():
+
+				# Function that adds the student details after the button press.
+				def next_new_stud():
+
+					# Function that cancels the addition of a new student by closing the window.
+					def cancel_add():
+						new_stud.destroy()
+
+					# Function that checks all the valid fields entered and inserts into the database after the SUBMIT button has been pressed.
+					def submit_add():
+
+						# Check if all fields have been entered.
+						if stud_block.get() != '' and room_num.get() != '' and fee_paid != '':
+
+							# Get the warden details for the given block.
+							wdn_id = cursor.execute('select name, id from warden where blocknum=?', (stud_block.get(),))
+							wdn_id = wdn_id.fetchall()
+
+							# Insert the student details into the database.
+							cursor.execute('insert into block values(?, ?, ?, ?, ?, ?)', (stud_block.get(), '', wdn_id[0][1], wdn_id[0][0], usn.get(), stud_name_record[0][0]))
+							cursor.execute('insert into room values(?, ?, ?, ?, ?, ?)', (room_num.get(), '4 sharing', stud_block.get(), '', usn.get(), stud_name_record[0][0]))
+							cursor.execute('update fee set totalfee=?, feepaid=?, feebalance=? where studusn=?', (77000, float(fee_paid.get()), 77000 - float(fee_paid.get()), usn.get()))
+							conn.commit()
+
+							# If the gender is "MALE", the student is allotted to the boys' hostel automatically.
+							if gender[0][0] == 'male':
+								cursor.execute('update block set type=? where studusn=?', ('boys', usn.get()))
+								cursor.execute('update room set blocktype=? where studusn=?', ('boys', usn.get()))
+								conn.commit()
+
+							# If the gender is "FEMALE", the student is allotted to the girls' hostel automatically.
+							elif gender[0][0] == 'female':
+								cursor.execute('update block set type=? where studusn=?', ('girls', usn.get()))
+								cursor.execute('update room set blocktype=? where studusn=?', ('girls', usn.get()))
+								conn.commit()
+
+							# If the gender is "OTHERS", the warden is given the choice.
+							else:
+								cursor.execute('update block set type=? where studusn=?', (block_type.get(), usn.get()))
+								cursor.execute('update room set blocktype=? where studusn=?', (block_type.get(), usn.get()))
+								conn.commit()
+							messagebox.showinfo('INFORMATION', 'Successfully added.')
+							new_stud.destroy()
+
+						else:
+							# Issue a warning if any of the mandatory fields are empty.
+							messagebox.showwarning('WARNING', 'Some of the required fields are empty.')
+
+					# Check if the USN entered is null.
+					if usn.get() != '':
+
+						is_stud = cursor.execute('select * from student where usn=?', (usn.get(),))
+						is_stud = is_stud.fetchall()
+
+						# Check if the student already exists in the student table of the database.
+						if len(is_stud) != 0:
+							is_stud_present = cursor.execute('select * from room where studusn=?', (usn.get(),))
+							is_stud_present = is_stud_present.fetchall()
+
+							# Check if the student already exists in the room table ofthe database.
+							if len(is_stud_present) == 0:
+								new_stud_usn.destroy()
+
+								# Toplevel window for entering the new student details.
+								new_stud = Toplevel()
+								new_stud.geometry('700x500+640+300')
+								new_stud.configure(bg='linen')
+								new_stud.resizable(False, False)
+
+								# Student details title.
+								stud_title = Label(new_stud, text='STUDENT DETAILS', font=('Times', 25, 'bold'), fg='DodgerBlue4', bg='linen')
+								stud_title.pack()
+
+								# Student name label.
+								stud_name_label = Label(new_stud, text='Name', font=('Courier', 17, 'bold'), fg='brown4', bg='linen')
+								stud_name_label.place(relx=0.25, rely=0.2, anchor=W)
+
+								# Retrieve the name of the student from the given USN.
+								stud_name_record = cursor.execute('select name from student where usn=?', (usn.get(),))
+								stud_name_record = stud_name_record.fetchall()
+
+								# Display the name of the student bearing the given USN.
+								stud_name_entry = Label(new_stud, text=stud_name_record[0][0], font=('Times', 18), bg='linen')
+								stud_name_entry.place(relx=0.48, rely=0.2, anchor=W)
+
+								# Block No. label.
+								stud_block_label = Label(new_stud, text='Block No.', font=('Courier', 17, 'bold'), fg='brown4', bg='linen')
+								stud_block_label.place(relx=0.25, rely=0.3, anchor=W)
+
+								# Block No. entry box.
+								stud_block_entry = Entry(new_stud, font=('Times', 14), textvariable=stud_block)
+								stud_block_entry.place(relx=0.48, rely=0.3, anchor=W)
+
+								# Block type label.
+								stud_block_type = Label(new_stud, text='Block type', font=('Courier', 17, 'bold'), fg='brown4', bg='linen')
+								stud_block_type.place(relx=0.25, rely=0.4, anchor=W)
+
+								# Retrieve the gender of the given student.
+								gender = cursor.execute('select gender from student where usn=?', (usn.get(),))
+								gender = gender.fetchall()
+
+								# If the gender is "MALE", the student is allotted to the boys' hostel.
+								if gender[0][0] == 'male':
+									block_type_label = Label(new_stud, text="Boys' hostel", font=('Times', 18), bg='linen')
+									block_type_label.place(relx=0.48, rely=0.4, anchor=W)
+
+								# If the gender is "FEMALE", the student is allotted to the girls' hostel.
+								elif gender[0][0] == 'female':
+									block_type_label = Label(new_stud, text="Girls' hostel", font=('Times', 18), bg='linen')
+									block_type_label.place(relx=0.48, rely=0.4, anchor=W)
+
+								# If the gender is "OTHERS", the warden is given the choice.
+								else:
+									block_type_options = ["Boys' hostel", "Girls' hostel"]
+									course_drop_down = OptionMenu(new_stud, block_type, *block_type_options)
+									block_type.set("Boys' hostel")
+									course_drop_down.place(relx=0.48, rely=0.4, anchor=W)
+
+								# Room No. label.
+								stud_room_label = Label(new_stud, text='Room No.', font=('Courier', 17, 'bold'), fg='brown4', bg='linen')
+								stud_room_label.place(relx=0.25, rely=0.5, anchor=W)
+
+								# Room No. entry box.
+								stud_room_entry = Entry(new_stud, font=('Times', 14), textvariable=room_num)
+								stud_room_entry.place(relx=0.48, rely=0.5, anchor=W)
+
+								# Fee paid label.
+								fee_paid_label = Label(new_stud, text='Fee paid', font=('Courier', 17, 'bold'), fg='brown4', bg='linen')
+								fee_paid_label.place(relx=0.25, rely=0.6, anchor=W)
+
+								# Fee paid entry box.
+								fee_paid_entry = Entry(new_stud, font=('Times', 14), textvariable=fee_paid)
+								fee_paid_entry.place(relx=0.48, rely=0.6, anchor=W)
+
+								# Submit button.
+								submit_info_btn = Button(new_stud, text='SUBMIT', font=('Courier', 14), bg='light steel blue', command=submit_add)
+								submit_info_btn.place(relx=0.35, rely=0.85, anchor=W)
+
+								# Cancel button.
+								cancel_info_btn = Button(new_stud, text='CANCEL', font=('Courier', 14), bg='light steel blue', command=cancel_add)
+								cancel_info_btn.place(relx=0.53, rely=0.85, anchor=W)
+
+							else:
+								# Issue a warning if the student already exists in the database.
+								messagebox.showwarning('WARNING', 'Student with USN ' + usn.get() + ' already exists.')
+
+						else:
+							# issue a warning if the student has not been registered in the database.
+							messagebox.showwarning('WARNING', 'Student with USN ' + usn.get() + ' has not registered.')
+
+					else:
+						# Issue a warning if the entered USN is null.
+						messagebox.showwarning('WARNING', 'Enter USN')
+
+				# Toplevel window for new student addition.
+				new_stud_usn = Toplevel()
+				new_stud_usn.geometry('700x250+640+400')
+				new_stud_usn.resizable(False, False)
+				new_stud_usn.configure(bg='linen')
+
+				# Set the text variable, USN, to null.
+				usn.set('')
+
+				# Add student title.
+				new_title = Label(new_stud_usn, text='ADD STUDENT', font=('Times', 25, 'bold'), bg='linen', fg='DodgerBlue4')
+				new_title.pack()
+
+				# USN label.
+				usn_label = Label(new_stud_usn, text='USN', bg='linen', fg='brown4', font=('Courier', 17, 'bold'))
+				usn_label.place(relx=0.3, rely=0.5, anchor=W)
+
+				# USN entry box.
+				usn_entry = Entry(new_stud_usn, font=('Times', 14), textvariable=usn, width=20)
+				usn_entry.place(relx=0.4, rely=0.5, anchor=W)
+
+				# Next button.
+				next_btn = Button(new_stud_usn, text='NEXT', font=('Courier', 17), bg='purple', fg='white', command=next_new_stud)
+				next_btn.place(relx=0.8, rely=0.8, anchor=W)
+
+				# Display the details of warden.
+				wrdn_name = cursor.execute('select name from warden where id=?', (uname, ))
+				wrdn_name = wrdn_name.fetchall()
+				wrdn_pwd = cursor.execute('select password from warden where id=?', (uname, ))
+				wrdn_pwd = wrdn_pwd.fetchall()
+				if len(wrdn_name) != 0 and len(wrdn_pwd) != 0:
+					wrdn_id, wrdn_pass = wrdn_name[0], wrdn_pwd[0]
+					if wrdn_pass[0] == pword:
+						top2 = Toplevel()
+						top2.configure(bg='azure')
+						top2.resizable(False, False)
+						top2.geometry('1850x990')
+
+						title_frame = LabelFrame(top2, bg='azure')
+						title_frame.place(width=1850, height=100)
+
+						mid_frame_wrdn = LabelFrame(top2, bg='white')
+						mid_frame_wrdn.place(rely=0.105, width=1850, height=100)
+
+						title = Label(top2, text='WARDEN PROFILE', font=('Times New Roman', 55, 'bold'), fg='DodgerBlue4', bg='azure')
+						title.pack()
+						wrdn_icon = Image.open('/home/astronag/warden.png')
+						wrdn_icon = wrdn_icon.resize((50, 50), Image.ANTIALIAS)
+						wrdn_img = ImageTk.PhotoImage(wrdn_icon)
+						wrdn_img_btn = Button(top2, image=wrdn_img, bg='white', command=show_wrdn_info)
+						wrdn_img_btn.image = wrdn_img
+						wrdn_img_btn.place(relx=0.008, rely=0.15, anchor=W)
+						display_warden_info()
+					else:
+						setnull()
 				else:
 					setnull()
-			else:
-				setnull()
-	else:
-		setnull()
+		else:
+			setnull()
 
 
 	def edit():
