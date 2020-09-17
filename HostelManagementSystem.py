@@ -260,6 +260,122 @@ def login(uname, pword):
 				# Set the username and password fields to null if the credentials are not matched.
 				setnull()
 		else:
+			# Function to edit the information of warden.
+				def edit_wrdn():
+					info_top.destroy()
+
+					# Function to submit the modified details of warden.
+					def submit_wrdn_edit():
+						# TRIGGER FOR UPDATING DETAILS OF WARDEN
+						# cursor.execute('create trigger update_info after update on warden begin update block set wardenname=New.name; end;')
+						if edit_name.get() != '' and edit_gmail.get() != '' and edit_phone.get() != '':
+							# Check whether or ot the modified details are in correct format.
+							if len(edit_phone.get()) == 10:
+								# Check if the phone no. is in correct format.
+								if edit_pwd.get() == edit_cfrm_pwd.get():
+									if edit_pwd.get() != '':
+										# Update the modified details in the database.
+										cursor.execute('update warden set name=?, gmail=?, phone=?, password=? where id=?', (edit_name.get(), edit_gmail.get(), edit_phone.get(), edit_pwd.get(), uname))
+										conn.commit()
+										# Display 'Successfully updated' message box.
+										messagebox.showinfo('INFORMATION', 'Successfully updated')
+										edit_top.destroy()
+										# show_wrdn_name()
+									else:
+										cursor.execute('update warden set name=?, gmail=?, phone=? where id=?', (edit_name.get(), edit_gmail.get(), edit_phone.get(), uname))
+										conn.commit()
+										messagebox.showinfo('INFORMATION', 'Successfully updated')
+										edit_top.destroy()
+										# show_wrdn_name()
+
+								else:
+									# Issue a warning if the passwords are not the same.
+									messagebox.showwarning('WARNING', 'Passwords should be the same')
+							else:
+								# Issue a warning if the phone no. is not in correct format.
+								messagebox.showwarning('WARNING', 'Invalid Phone No.')
+						else:
+							# Issue a warning if any of the fields are empty.
+							messagebox.showwarning('WARNING', 'Some of the required field(s) are left empty')
+
+					# Cancel the edit functionality for warden.
+					def cancel_wrdn_edit():
+						edit_top.destroy()
+
+					# StringVar for all entry boxes.
+					edit_name = StringVar()
+					edit_gmail = StringVar()
+					edit_phone = StringVar()
+					edit_pwd = StringVar()
+					edit_cfrm_pwd = StringVar()
+
+					# Toplevel for edit warden.
+					edit_top = Toplevel()
+					edit_top.geometry('800x600+585+260')
+					edit_top.configure(bg='linen')
+					edit_top.resizable(False, False)
+
+					# Title for warden edit.
+					edit_title = Label(edit_top, text='EDIT INFORMATION', font=('Times', 35, 'bold'), bg='linen', fg='DodgerBlue4')
+					edit_title.pack()
+
+					# Warden name label in edit window.
+					edit_name_label = Label(edit_top, text='Name', font=('Helvetica', 15, 'bold'), bg='linen', fg='brown4')
+					edit_name_label.place(relx=0.25, rely=0.17, anchor=W)
+					# Warden name entry box in edit window.
+					edit_name_entry = Entry(edit_top, font=('Times', 14), textvariable=edit_name)
+					edit_name_entry.place(relx=0.5, rely=0.17, anchor=W)
+					# Retrieve the name from the database.
+					wdn_name = cursor.execute('select name from warden where id=?', (uname,))
+					wdn_name = wdn_name.fetchall()
+					wdn_name = wdn_name[0]
+					edit_name.set(wdn_name[0])
+
+					# Warden ID label in edit window.
+					edit_id_label = Label(edit_top, text='ID', font=('Helvetica', 15, 'bold'), bg='linen', fg='brown4')
+					edit_id_label.place(relx=0.25, rely=0.28, anchor=W)
+					# Set the warden ID retrieved from the database.
+					edit_id = Label(edit_top, text=uname, font=('Times', 18, 'bold'), bg='linen')
+					edit_id.place(relx=0.5, rely=0.28, anchor=W)
+
+					# Warden Gmail label in the edit window.
+					edit_gmail_label = Label(edit_top, text='Gmail', font=('Helvetica', 15, 'bold'), bg='linen', fg='brown4')
+					edit_gmail_label.place(relx=0.25, rely=0.39, anchor=W)
+					# Warden Gmail entry box in the edit window.
+					edit_gmail_entry = Entry(edit_top, font=('Times', 14), textvariable=edit_gmail)
+					edit_gmail_entry.place(relx=0.5, rely=0.39, anchor=W)
+					edit_gmail.set(wrdn_gmail_record[0])
+
+					# Warden phone label in the edit window.
+					edit_phone_label = Label(edit_top, text='Phone', font=('Helvetica', 15, 'bold'), bg='linen', fg='brown4')
+					edit_phone_label.place(relx=0.25, rely=0.5, anchor=W)
+					# Warden phone entry box in the edit window.
+					edit_phone_entry = Entry(edit_top, font=('Times', 14), textvariable=edit_phone)
+					edit_phone_entry.place(relx=0.5, rely=0.5, anchor=W)
+					edit_phone.set(wrdn_ph_record[0])
+
+					# Warden password label in the edit window.
+					edit_pwd_label = Label(edit_top, text='New password', font=('Helvetica', 15, 'bold'), bg='linen', fg='brown4')
+					edit_pwd_label.place(relx=0.25, rely=0.61, anchor=W)
+					# Warden password entry box in the edit window.
+					edit_pwd_entry = Entry(edit_top, font=('Times', 14), textvariable=edit_pwd)
+					edit_pwd_entry.place(relx=0.5, rely=0.61, anchor=W)
+
+					# Warden confirm password in the edit window.
+					edit_cfrm_pwd_label = Label(edit_top, text='Confirm Password', font=('Helvetica', 15, 'bold'), bg='linen', fg='brown4')
+					edit_cfrm_pwd_label.place(relx=0.25, rely=0.72, anchor=W)
+					# Warden confirm password entry box in the edit window.
+					edit_cfrm_pwd_entry = Entry(edit_top, font=('Times', 14), textvariable=edit_cfrm_pwd)
+					edit_cfrm_pwd_entry.place(relx=0.5, rely=0.72, anchor=W)
+
+					# Warden edit submit button in the edit window.
+					edit_submit_btn = Button(edit_top, text='SUBMIT', bg='light steel blue', command=submit_wrdn_edit)
+					edit_submit_btn.place(relx=0.38, rely=0.85, anchor=W)
+
+					# Warden edit cancel button in the edit window.
+					edit_cancel_btn = Button(edit_top, text='CANCEL', bg='light steel blue', command=cancel_wrdn_edit)
+					edit_cancel_btn.place(relx=0.52, rely=0.85, anchor=W)
+
 			# Function to display the details of warden.
 			def display_warden_info():
 				# Style configuration for treeview.
